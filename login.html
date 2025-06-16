@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Вход для курьера</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 80px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Вход курьера</h2>
+
+  <input type="email" id="email" placeholder="Email" required />
+  <input type="password" id="password" placeholder="Пароль" required />
+  <button id="loginBtn">Войти</button>
+  <p id="message"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+      authDomain: "courierapp-99ddb.firebaseapp.com",
+      projectId: "courierapp-99ddb",
+      storageBucket: "courierapp-99ddb.appspot.com",
+      messagingSenderId: "474302757465",
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const message = document.getElementById('message');
+
+    loginBtn.addEventListener('click', () => {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          window.location.href = "location.html";
+        })
+        .catch((error) => {
+          message.textContent = "Ошибка входа: " + error.message;
+        });
+    });
+  </script>
+
+</body>
+</html>
