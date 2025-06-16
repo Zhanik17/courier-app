@@ -1,23 +1,24 @@
-<!DOCTYPE html>
+
+  <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Где курьер</title>
+  <title>Карта: Где курьер?</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Leaflet карта -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+    }
     #map {
       height: 100vh;
-      width: 100%;
+      width: 100vw;
     }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center;">Местоположение курьера</h2>
   <div id="map"></div>
 
   <script type="module">
@@ -37,20 +38,23 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const map = L.map('map').setView([51.1694, 71.4491], 12); // координаты Астаны
+    const map = L.map('map').setView([51.1694, 71.4491], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const marker = L.marker([51.1694, 71.4491]).addTo(map);
+    const marker = L.marker([51.1694, 71.4491]).addTo(map)
+      .bindPopup("Курьер здесь")
+      .openPopup();
 
-    const locationRef = ref(db, 'courier/location');
-    onValue(locationRef, (snapshot) => {
+    const courierRef = ref(db, 'courier/location');
+
+    onValue(courierRef, (snapshot) => {
       const data = snapshot.val();
       if (data && data.lat && data.lng) {
         marker.setLatLng([data.lat, data.lng]);
-        map.setView([data.lat, data.lng], 14);
+        map.setView([data.lat, data.lng]);
       }
     });
   </script>
