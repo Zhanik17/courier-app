@@ -4,6 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Заказ доставки</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
@@ -17,3 +39,20 @@
     <input type="text" id="time" placeholder="Время доставки" required />
 
     <select id="type" required>
+      <option value="">Тип услуги</option>
+      <option value="Такси">Такси</option>
+      <option value="Доставка">Доставка</option>
+      <option value="Дети">Дети</option>
+      <option value="Групповая">Групповая</option>
+    </select>
+
+    <button type="submit">Оформить заказ</button>
+  </form>
+
+  <!-- Скрипты -->
+  <script type="module" src="./firebase.js"></script>
+  <script type="module" src="./script.js"></script>
+
+</body>
+</html>
+
