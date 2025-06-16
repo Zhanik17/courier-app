@@ -2,29 +2,59 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Карта курьера</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход для курьера</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
+      background: #f1f1f1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       height: 100vh;
     }
-    #map {
-      height: 100%;
-      width: 100%;
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
 <body>
 
-<div id="map"></div>
+<form id="login-form">
+  <h2>Вход курьера</h2>
+  <input type="email" id="email" placeholder="Email" required />
+  <input type="password" id="password" placeholder="Пароль" required />
+  <button type="submit">Войти</button>
+</form>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
@@ -33,71 +63,29 @@
     storageBucket: "courierapp-99ddb.appspot.com",
     messagingSenderId: "474302757465",
     appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
-    measurementId: "G-X58GS7WDHG",
-    databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
+    measurementId: "G-X58GS7WDHG"
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const database = getDatabase(app);
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      alert("Вы не вошли. Перенаправляем на вход...");
-      window.location.href = "login.html";
-    } else {
-      console.log("Пользователь вошёл:", user.email);
-      startTracking(user.uid);
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("Вход выполнен");
+      window.location.href = "courier.html";
+    } catch (error) {
+      alert("Ошибка входа: " + error.message);
     }
   });
-
-  function startTracking(userId) {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          set(ref(database, 'locations/' + userId), {
-            latitude: lat,
-            longitude: lng,
-            timestamp: Date.now()
-          });
-          updateMap(lat, lng);
-        },
-        (error) => {
-          console.error("Ошибка получения геолокации:", error);
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 5000
-        }
-      );
-    } else {
-      alert("Геолокация не поддерживается вашим устройством.");
-    }
-  }
-
-  let map, marker;
-
-  function updateMap(lat, lng) {
-    if (!map) {
-      map = L.map('map').setView([lat, lng], 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
-
-      marker = L.marker([lat, lng]).addTo(map).bindPopup("Вы здесь").openPopup();
-    } else {
-      marker.setLatLng([lat, lng]);
-      map.setView([lat, lng]);
-    }
-  }
 </script>
-
-<!-- Leaflet карта -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 </body>
 </html>
+
+        
+
