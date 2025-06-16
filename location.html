@@ -2,16 +2,43 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Отправка координат</title>
+  <title>Карта курьера</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      height: 90vh;
+      width: 100%;
+    }
+    #logout {
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Отправка твоего местоположения…</h2>
-  <p>Эта страница будет передавать координаты в реальном времени.</p>
 
+  <button id="logout">Выйти</button>
+  <div id="map"></div>
+
+  <!-- Firebase + карта + логика -->
   <script type="module">
+    // Инициализация Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
@@ -19,34 +46,43 @@
       projectId: "courierapp-99ddb",
       storageBucket: "courierapp-99ddb.appspot.com",
       messagingSenderId: "474302757465",
-      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
-      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-    function updateLocation(lat, lng) {
-      const locRef = ref(db, 'courier/location');
-      set(locRef, { lat, lng });
-    }
+    // Защита: если не авторизован — редирект на login
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    });
 
-    // Отслеживаем позицию курьера
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          updateLocation(lat, lng);
-        },
-        (error) => {
-          console.error("Ошибка геолокации:", error);
-        },
-        { enableHighAccuracy: true, maximumAge: 10000 }
-      );
-    } else {
-      alert("Геолокация не поддерживается этим браузером.");
-    }
+    // Выход из аккаунта
+    document.getElementById('logout').addEventListener('click', () => {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    });
   </script>
+
+  <!-- Подключаем Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+  <script>
+    // Отображение карты
+    const map = L.map('map').setView([51.1605, 71.4704], 13); // Астана
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Пример маркера — можешь обновить на реальное местоположение
+    const marker = L.marker([51.1605, 71.4704]).addTo(map)
+      .bindPopup('Курьер здесь').openPopup();
+  </script>
+
 </body>
 </html>
