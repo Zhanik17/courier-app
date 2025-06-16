@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Местоположение курьера</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <style>
+    #map {
+      height: 80vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Курьер: Отправить местоположение</h1>
+  <div id="map"></div>
+  <button id="send-location">Отправить местоположение</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+      authDomain: "courierapp-99ddb.firebaseapp.com",
+      projectId: "courierapp-99ddb",
+      storageBucket: "courierapp-99ddb.appspot.com",
+      messagingSenderId: "474302757465",
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
+      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const map = L.map('map').setView([51.1694, 71.4491], 12); // координаты Астаны
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    const marker = L.marker([51.1694, 71.4491]).addTo(map);
+
+    // Кнопка отправки местоположения
+    document.getElementById("send-location").addEventListener("click", function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          // Отправляем данные в Firebase
+          set(ref(db, 'courier/location'), {
+            lat: lat,
+            lng: lng
+          });
+
+          // Обновляем маркер на карте
+          marker.setLatLng([lat, lng]);
+          map.setView([lat, lng], 14);
+        });
+      } else {
+        alert("Геолокация не поддерживается этим браузером.");
+      }
+    });
+  </script>
+</body>
+</html>
