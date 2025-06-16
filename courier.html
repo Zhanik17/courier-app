@@ -1,20 +1,15 @@
-
-          
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Курьер — Отправка координат</title>
+  <title>Курьер</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    #map { height: 80vh; width: 100%; }
-  </style>
+  <style>#map { height: 90vh; width: 100%; }</style>
 </head>
 <body>
-  <h1>Курьер: Отправить местоположение</h1>
+  <h2>Курьер: Отправка геолокации</h2>
   <div id="map"></div>
-  <button id="send-location">Отправить местоположение</button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -35,36 +30,41 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    const map = L.map('map').setView([51.1694, 71.4491], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-    const marker = L.marker([51.1694, 71.4491]).addTo(map);
+    let map, marker;
 
-    document.getElementById("send-location").addEventListener("click", () => {
-      onAuthStateChanged(auth, (user) => {
-        if (user && navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+    onAuthStateChanged(auth, (user) => {
+      if (!user) return location.href = "login.html";
 
-            set(ref(db, 'couriers/' + user.uid + '/location'), {
-              lat: lat,
-              lng: lng,
-              timestamp: Date.now()
-            });
+      if (navigator.geolocation) {
+        navigator.geolocation.watchPosition((position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
 
-            marker.setLatLng([lat, lng]);
-            map.setView([lat, lng], 14);
+          set(ref(db, 'couriers/' + user.uid + '/location'), {
+            lat: lat,
+            lng: lng,
+            timestamp: Date.now()
           });
-        } else {
-          alert("Войдите в аккаунт или включите геолокацию.");
-          window.location.href = "login.html";
-        }
-      });
+
+          if (!map) {
+            map = L.map('map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap'
+            }).addTo(map);
+            marker = L.marker([lat, lng]).addTo(map).bindPopup("Вы здесь").openPopup();
+          } else {
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng]);
+          }
+        });
+      } else {
+        alert("Геолокация не поддерживается.");
+      }
     });
   </script>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
+
+
+           
