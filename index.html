@@ -53,6 +53,15 @@
     button:hover {
       background-color: #ff85c1;
     }
+
+    .login-button {
+      margin-top: 20px;
+      background-color: #4CAF50;
+    }
+
+    .login-button:hover {
+      background-color: #66bb6a;
+    }
   </style>
 </head>
 <body>
@@ -75,6 +84,11 @@
 
     <button type="submit">Оформить заказ</button>
   </form>
+
+  <!-- Кнопка входа -->
+  <button class="login-button" onclick="window.location.href='login.html'">
+    Войти как курьер
+  </button>
 
   <script type="module" src="./firebase.js"></script>
   <script type="module" src="./script.js"></script>
