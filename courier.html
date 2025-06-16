@@ -1,69 +1,79 @@
-<!DOCTYPE html>
+
+   <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Местоположение курьера</title>
+  <title>Карта курьера (автоотслеживание)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    #map {
-      height: 80vh;
-      width: 100%;
-    }
+    #map { height: 90vh; width: 100%; }
   </style>
 </head>
 <body>
-  <h1>Курьер: Отправить местоположение</h1>
-  <div id="map"></div>
-  <button id="send-location">Отправить местоположение</button>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+<div id="map"></div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
-      authDomain: "courierapp-99ddb.firebaseapp.com",
-      projectId: "courierapp-99ddb",
-      storageBucket: "courierapp-99ddb.appspot.com",
-      messagingSenderId: "474302757465",
-      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
-      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
-    };
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+    authDomain: "courierapp-99ddb.firebaseapp.com",
+    projectId: "courierapp-99ddb",
+    storageBucket: "courierapp-99ddb.appspot.com",
+    messagingSenderId: "474302757465",
+    appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
+    databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
+  };
 
-    const map = L.map('map').setView([51.1694, 71.4491], 12); // координаты Астаны
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
+  let map, marker;
+
+  function initMap(lat, lng) {
+    map = L.map('map').setView([lat, lng], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
+      attribution: '&copy; OpenStreetMap'
     }).addTo(map);
+    marker = L.marker([lat, lng]).addTo(map).bindPopup("Вы здесь").openPopup();
+  }
 
-    const marker = L.marker([51.1694, 71.4491]).addTo(map);
+  function updateMap(lat, lng) {
+    marker.setLatLng([lat, lng]);
+    map.setView([lat, lng]);
+  }
 
-    // Кнопка отправки местоположения
-    document.getElementById("send-location").addEventListener("click", function() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("Не вошли. Перенаправление...");
+      window.location.href = "login.html";
+    } else {
+      navigator.geolocation.watchPosition((position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-          // Отправляем данные в Firebase
-          set(ref(db, 'courier/location'), {
-            lat: lat,
-            lng: lng
-          });
-
-          // Обновляем маркер на карте
-          marker.setLatLng([lat, lng]);
-          map.setView([lat, lng], 14);
+        set(ref(db, 'locations/' + user.uid), {
+          latitude: lat,
+          longitude: lng,
+          timestamp: Date.now()
         });
-      } else {
-        alert("Геолокация не поддерживается этим браузером.");
-      }
-    });
-  </script>
+
+        if (!map) initMap(lat, lng);
+        else updateMap(lat, lng);
+      });
+    }
+  });
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 </body>
 </html>
+
+
+          
