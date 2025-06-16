@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Регистрация</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
 <body>
-  <h1>Регистрация</h1>
+  <h1>Регистрация курьера</h1>
   <form id="register-form">
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Пароль" required />
@@ -15,6 +16,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
@@ -23,11 +25,13 @@
       storageBucket: "courierapp-99ddb.appspot.com",
       messagingSenderId: "474302757465",
       appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
-      measurementId: "G-X58GS7WDHG"
+      measurementId: "G-X58GS7WDHG",
+      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getDatabase(app);
 
     document.getElementById("register-form").addEventListener("submit", (e) => {
       e.preventDefault();
@@ -35,12 +39,20 @@
       const password = document.getElementById("password").value;
 
       createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          alert("Успешная регистрация! Теперь войдите.");
+        .then((userCredential) => {
+          const user = userCredential.user;
+
+          // Сохраняем информацию о курьере в базе данных
+          set(ref(db, 'couriers/' + user.uid), {
+            email: email,
+            registeredAt: Date.now()
+          });
+
+          alert("Регистрация прошла успешно!");
           window.location.href = "login.html";
         })
         .catch((error) => {
-          alert("Ошибка: " + error.message);
+          alert("Ошибка регистрации: " + error.message);
         });
     });
   </script>
