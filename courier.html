@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <title>Личный кабинет курьера</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f3f3f3;
+      padding: 10px;
+      background: #f7f7f7;
     }
 
     h2 {
+      text-align: center;
       color: #333;
     }
 
@@ -21,8 +23,8 @@
 
     .order {
       background: white;
+      border-radius: 10px;
       padding: 10px;
-      border-radius: 8px;
       margin-bottom: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
@@ -37,26 +39,28 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background-color: #45a049;
+    #map {
+      height: 300px;
+      margin-top: 20px;
+      border-radius: 10px;
     }
 
-    .logout-btn {
-      background-color: #f44336;
-      margin-top: 30px;
-    }
-
-    .logout-btn:hover {
-      background-color: #d32f2f;
+    #logout {
+      margin-top: 20px;
+      background-color: #e53935;
     }
   </style>
 </head>
 <body>
-
   <h2>Личный кабинет курьера</h2>
   <div id="orders">Загрузка заказов...</div>
-  <button class="logout-btn" onclick="logout()">Выйти</button>
+  <div id="map"></div>
+  <button id="logout">Выйти</button>
 
+  <!-- Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Firebase и логика -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -77,51 +81,83 @@
     const db = getDatabase(app);
 
     const ordersDiv = document.getElementById('orders');
+    const logoutBtn = document.getElementById('logout');
 
+    let courierUid = null;
+
+    // Авторизация
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        const ordersRef = ref(db, 'orders');
-        onValue(ordersRef, (snapshot) => {
-          ordersDiv.innerHTML = '';
-          const orders = snapshot.val();
-          if (orders) {
-            Object.entries(orders).forEach(([id, order]) => {
-              if (order.status !== 'выполнен') {
-                const div = document.createElement('div');
-                div.className = 'order';
-                div.innerHTML = `
-                  <strong>Имя:</strong> ${order.name}<br/>
-                  <strong>Что:</strong> ${order.item}<br/>
-                  <strong>Откуда:</strong> ${order.from}<br/>
-                  <strong>Куда:</strong> ${order.to}<br/>
-                  <strong>Тип:</strong> ${order.type}<br/>
-                  <strong>Время:</strong> ${order.time}<br/>
-                  <strong>Статус:</strong> ${order.status}<br/>
-                  <button onclick="markAsDone('${id}')">Отметить как выполнено</button>
-                `;
-                ordersDiv.appendChild(div);
-              }
-            });
-          } else {
-            ordersDiv.innerText = 'Заказов нет';
-          }
-        });
+        courierUid = user.uid;
+        loadOrders();
+        trackLocation();
       } else {
         window.location.href = 'login.html';
       }
     });
 
-    window.markAsDone = async function(orderId) {
-      const orderRef = ref(db, 'orders/' + orderId);
-      await update(orderRef, { status: 'выполнен' });
-      alert('Заказ отмечен как выполненный');
+    // Загрузка заказов
+    function loadOrders() {
+      const ordersRef = ref(db, 'orders');
+      onValue(ordersRef, (snapshot) => {
+        ordersDiv.innerHTML = '';
+        snapshot.forEach((child) => {
+          const order = child.val();
+          const key = child.key;
+
+          if (order.status !== 'выполнен') {
+            const div = document.createElement('div');
+            div.className = 'order';
+            div.innerHTML = `
+              <strong>${order.type}</strong><br>
+              От: ${order.from}<br>
+              Куда: ${order.to}<br>
+              Что: ${order.item}<br>
+              Время: ${order.time}<br>
+              <button onclick="markDone('${key}')">Выполнено</button>
+            `;
+            ordersDiv.appendChild(div);
+          }
+        });
+      });
     }
 
-    window.logout = function() {
+    // Отметить заказ как выполненный
+    window.markDone = async (orderId) => {
+      await update(ref(db, `orders/${orderId}`), { status: 'выполнен' });
+    };
+
+    // Отслеживание геопозиции
+    function trackLocation() {
+      if (!navigator.geolocation) return;
+
+      const courierRef = ref(db, `couriers/${courierUid}/location`);
+
+      navigator.geolocation.watchPosition((pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+        update(courierRef, coords);
+        marker.setLatLng([coords.lat, coords.lng]);
+        map.setView([coords.lat, coords.lng], 14);
+      });
+    }
+
+    // Карта
+    const map = L.map('map').setView([51.1694, 71.4491], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    const marker = L.marker([0, 0]).addTo(map).bindPopup("Вы");
+
+    // Выход
+    logoutBtn.addEventListener('click', () => {
       signOut(auth).then(() => {
         window.location.href = 'login.html';
       });
-    }
+    });
   </script>
 </body>
 </html>
+
