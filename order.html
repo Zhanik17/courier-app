@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Заказ</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      padding: 20px;
+    }
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: auto;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="order-form">
+    <h2>Оформить заказ</h2>
+    <input type="text" id="name" placeholder="Ваше имя" required>
+    <input type="text" id="what" placeholder="Что доставить" required>
+    <input type="text" id="from" placeholder="Откуда" required>
+    <input type="text" id="to" placeholder="Куда" required>
+    <input type="text" id="time" placeholder="Время" required>
+    <button type="submit">Отправить заказ</button>
+  </form>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+      authDomain: "courierapp-99ddb.firebaseapp.com",
+      projectId: "courierapp-99ddb",
+      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com",
+      storageBucket: "courierapp-99ddb.appspot.com",
+      messagingSenderId: "474302757465",
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const form = document.getElementById('order-form');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const order = {
+        name: form.name.value,
+        what: form.what.value,
+        from: form.from.value,
+        to: form.to.value,
+        time: form.time.value,
+        status: "ожидает",
+        courierId: null
+      };
+
+      db.ref('orders').push(order)
+        .then(() => {
+          alert("✅ Заказ успешно отправлен!");
+          form.reset();
+        })
+        .catch(err => {
+          alert("Ошибка отправки: " + err.message);
+        });
+    });
+  </script>
+
+</body>
+</html>
