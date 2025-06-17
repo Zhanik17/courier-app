@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Создание заказа</title>
+  <meta charset="UTF-8" />
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "ТВОЙ_КЛЮЧ",
+      authDomain: "ТВОЙ_ПРОЕКТ.firebaseapp.com",
+      databaseURL: "https://ТВОЙ_ПРОЕКТ.firebaseio.com",
+      projectId: "ТВОЙ_ПРОЕКТ",
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</head>
+
+<body>
+  <h2>Создание заказа</h2>
+
+  <label>Имя клиента: <input id="name" /></label><br/>
+  <label>Что доставить: <input id="item" /></label><br/>
+  <label>Откуда: <input id="from" /></label><br/>
+  <label>Куда: <input id="to" /></label><br/>
+  <label>Время: <input id="time" type="time" /></label><br/>
+  <label>Тип услуги: <input id="type" /></label><br/>
+
+  <button onclick="submitOrder()">Отправить заказ</button>
+
+  <script>
+    function submitOrder() {
+      const name = document.getElementById("name").value;
+      const item = document.getElementById("item").value;
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+      const time = document.getElementById("time").value;
+      const type = document.getElementById("type").value;
+
+      firebase.auth().onAuthStateChanged(user => {
+        if (!user) {
+          alert("Войдите в систему как курьер");
+          return;
+        }
+
+        const order = {
+          name,
+          item,
+          from,
+          to,
+          time,
+          type,
+          courierId: user.uid,
+          status: "in-progress"
+        };
+
+        firebase.database().ref("orders").push(order).then(() => {
+          alert("Заказ отправлен");
+        });
+      });
+    }
+  </script>
+</body>
+</html>
