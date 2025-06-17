@@ -29,7 +29,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     const user = userCredential.user;
 
     // Перенаправление после успешного входа
-    window.location.href = "map.html";
+    window.location.href = "courier.html"; // ⬅ Переход в личный кабинет
   } catch (error) {
     errorMessage.textContent = "Ошибка входа: " + error.message;
   }
