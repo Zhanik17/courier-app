@@ -69,37 +69,38 @@
     <div class="error" id="error"></div>
   </form>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
+  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyD2fGiGUlv-D2_W04WRrxAFe34rNzB1FVU",
-      authDomain: "courier-app-bcf64.firebaseapp.com",
-      projectId: "courier-app-bcf64",
-      storageBucket: "courier-app-bcf64.appspot.com",
-      messagingSenderId: "328029865365",
-      appId: "1:328029865365:web:8c9cd999a9b49d7cfb2d21",
-      databaseURL: "https://courier-app-bcf64-default-rtdb.firebaseio.com"
+      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+      authDomain: "courierapp-99ddb.firebaseapp.com",
+      projectId: "courierapp-99ddb",
+      storageBucket: "courierapp-99ddb.appspot.com",
+      messagingSenderId: "474302757465",
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
+      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
     const form = document.getElementById("login-form");
     const errorDiv = document.getElementById("error");
 
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
       const email = form.email.value.trim();
       const password = form.password.value.trim();
 
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "courier.html"; // Переход в личный кабинет
-      } catch (error) {
-        errorDiv.textContent = "Ошибка: " + error.message;
-      }
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          window.location.href = "courier.html";
+        })
+        .catch((error) => {
+          errorDiv.textContent = "Ошибка: " + error.message;
+        });
     });
   </script>
 </body>
