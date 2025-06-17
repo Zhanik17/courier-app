@@ -16,12 +16,10 @@
       align-items: center;
       justify-content: center;
     }
-
     h1 {
       color: #333;
       margin-bottom: 20px;
     }
-
     form {
       background: white;
       padding: 20px;
@@ -32,14 +30,12 @@
       flex-direction: column;
       gap: 10px;
     }
-
     input, select {
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 14px;
     }
-
     button {
       padding: 10px;
       background-color: #ff69b4;
@@ -49,16 +45,13 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #ff85c1;
     }
-
     .login-button {
       margin-top: 20px;
       background-color: #4CAF50;
     }
-
     .login-button:hover {
       background-color: #66bb6a;
     }
@@ -70,58 +63,4 @@
 
   <form id="order-form">
     <input type="text" id="name" placeholder="Имя" required />
-    <input type="text" id="item" placeholder="Что доставить" required />
-    <input type="text" id="from" placeholder="Откуда" required />
-    <input type="text" id="to" placeholder="Куда" required />
-    <input type="text" id="time" placeholder="Время доставки" required />
-
-    <select id="type">
-      <option value="Такси">Такси</option>
-      <option value="Доставка">Доставка</option>
-      <option value="Дети">Дети</option>
-      <option value="Групповая">Групповая</option>
-    </select>
-
-    <button type="submit">Оформить заказ</button>
-  </form>
-
-  <!-- Кнопка входа -->
-  <button class="login-button" onclick="window.location.href='login.html'">
-    Войти как курьер
-  </button>
-
-  <!-- Подключение Firebase -->
-  <script type="module" src="./firebase.js"></script>
-
-  <!-- Скрипт отправки заказа -->
-  <script type="module">
-    import { db } from './firebase.js';
-    import { ref, push } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
-
-    const form = document.getElementById('order-form');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const order = {
-        name: document.getElementById('name').value,
-        item: document.getElementById('item').value,
-        from: document.getElementById('from').value,
-        to: document.getElementById('to').value,
-        time: document.getElementById('time').value,
-        type: document.getElementById('type').value,
-        status: 'в процессе',
-        createdAt: Date.now()
-      };
-
-      try {
-        await push(ref(db, 'orders'), order);
-        alert('Заказ отправлен!');
-        form.reset();
-      } catch (error) {
-        alert('Ошибка при отправке заказа: ' + error.message);
-      }
-    });
-  </script>
-</body>
-</html>
+    <input type="text" id="item" placeholder="Что доставить"
