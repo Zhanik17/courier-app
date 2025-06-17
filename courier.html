@@ -28,6 +28,7 @@
   </div>
 
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
       authDomain: "courierapp-99ddb.firebaseapp.com",
@@ -61,7 +62,10 @@
 
         snapshot.forEach(childSnapshot => {
           const order = childSnapshot.val();
-          if (order.courierId === courierId) {
+          const orderId = childSnapshot.key;
+
+          // Показываем заказы, если они свободны или назначены этому курьеру
+          if (order.courierId === null || order.courierId === courierId) {
             const div = document.createElement("div");
             div.className = "order";
             div.innerText = `
@@ -71,7 +75,8 @@
 Куда: ${order.to || ''}
 Время: ${order.time || ''}
 Статус: ${order.status || 'неизвестен'}
-`;
+            `.trim();
+
             if (order.status === "завершён") {
               completedOrdersContainer.appendChild(div);
             } else {
