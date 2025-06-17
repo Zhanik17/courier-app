@@ -2,20 +2,105 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Вход курьера</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style> /* (дизайн оставим без изменений) */ </style>
+  <title>Вход для курьера</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #acb6e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    form {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error {
+      color: red;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
-  <div class="login-container">
-    <h2>Вход для курьера</h2>
+  <form id="login-form">
+    <h2>Вход курьера</h2>
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Пароль" required />
-    <button id="login-btn">Войти</button>
-    <a href="register.html">Регистрация</a>
-  </div>
+    <button type="submit">Войти</button>
+    <div class="error" id="error"></div>
+  </form>
 
-  <script type="module" src="./login.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+      authDomain: "courierapp-99ddb.firebaseapp.com",
+      projectId: "courierapp-99ddb",
+      storageBucket: "courierapp-99ddb.appspot.com",
+      messagingSenderId: "474302757465",
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
+      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("login-form");
+    const errorDiv = document.getElementById("error");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = form.email.value.trim();
+      const password = form.password.value.trim();
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "map.html"; // Переход на карту после входа
+      } catch (error) {
+        errorDiv.textContent = "Ошибка: " + error.message;
+      }
+    });
+  </script>
 </body>
 </html>
