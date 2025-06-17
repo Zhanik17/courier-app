@@ -1,27 +1,40 @@
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { db } from "./firebase.js";
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const form = document.getElementById("order-form");
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const order = {
-    name: document.getElementById("name").value,
-    item: document.getElementById("item").value,
-    from: document.getElementById("from").value,
-    to: document.getElementById("to").value,
-    time: document.getElementById("time").value,
-    type: document.getElementById("type").value,
-    createdAt: new Date()
-  };
+  const name = form.name.value.trim();
+  const item = form.item.value.trim();
+  const from = form.from.value.trim();
+  const to = form.to.value.trim();
+  const time = form.time.value.trim();
+  const type = form.type.value;
+
+  if (!name || !item || !from || !to || !time || !type) {
+    alert("Пожалуйста, заполните все поля.");
+    return;
+  }
 
   try {
-    await addDoc(collection(db, "orders"), order);
-    alert("Заказ успешно отправлен!");
+    await addDoc(collection(db, "orders"), {
+      name,
+      item,
+      from,
+      to,
+      time,
+      type,
+      status: "в процессе",       // по умолчанию
+      createdAt: serverTimestamp(),
+      courierId: null             // можно будет назначить позже
+    });
+
+    alert("Заказ успешно оформлен!");
     form.reset();
   } catch (error) {
-    console.error("Ошибка отправки:", error);
-    alert("Не удалось отправить заказ.");
+    console.error("Ошибка при отправке заказа:", error);
+    alert("Ошибка при оформлении заказа. Попробуйте позже.");
   }
 });
