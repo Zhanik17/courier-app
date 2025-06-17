@@ -96,7 +96,8 @@
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = "map.html"; // Переход на карту после входа
+       window.location.href = "courier.html"; // Переход в личный кабинет
+
       } catch (error) {
         errorDiv.textContent = "Ошибка: " + error.message;
       }
