@@ -2,36 +2,126 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Добро пожаловать в CourierApp</title>
+  <title>Личный кабинет курьера</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f3f3f3;
     }
-    h1 {
-      margin-bottom: 40px;
+
+    h2 {
+      color: #333;
     }
-    .button {
-      display: block;
-      width: 200px;
-      margin: 15px auto;
-      padding: 15px;
-      background-color: #007bff;
-      color: white;
-      text-decoration: none;
+
+    #orders {
+      margin-top: 20px;
+    }
+
+    .order {
+      background: white;
+      padding: 10px;
       border-radius: 8px;
-      font-size: 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .button:hover {
-      background-color: #0056b3;
+
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .logout-btn {
+      background-color: #f44336;
+      margin-top: 30px;
+    }
+
+    .logout-btn:hover {
+      background-color: #d32f2f;
     }
   </style>
 </head>
 <body>
-  <h1>CourierApp</h1>
-  <a href="client.html" class="button">Я клиент</a>
-  <a href="login.html" class="button">Я курьер (войти)</a>
+
+  <h2>Личный кабинет курьера</h2>
+  <div id="orders">Загрузка заказов...</div>
+  <button class="logout-btn" onclick="logout()">Выйти</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+      authDomain: "courierapp-99ddb.firebaseapp.com",
+      projectId: "courierapp-99ddb",
+      storageBucket: "courierapp-99ddb.appspot.com",
+      messagingSenderId: "474302757465",
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
+      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const ordersDiv = document.getElementById('orders');
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const ordersRef = ref(db, 'orders');
+        onValue(ordersRef, (snapshot) => {
+          ordersDiv.innerHTML = '';
+          const orders = snapshot.val();
+          if (orders) {
+            Object.entries(orders).forEach(([id, order]) => {
+              if (order.status !== 'выполнен') {
+                const div = document.createElement('div');
+                div.className = 'order';
+                div.innerHTML = `
+                  <strong>Имя:</strong> ${order.name}<br/>
+                  <strong>Что:</strong> ${order.item}<br/>
+                  <strong>Откуда:</strong> ${order.from}<br/>
+                  <strong>Куда:</strong> ${order.to}<br/>
+                  <strong>Тип:</strong> ${order.type}<br/>
+                  <strong>Время:</strong> ${order.time}<br/>
+                  <strong>Статус:</strong> ${order.status}<br/>
+                  <button onclick="markAsDone('${id}')">Отметить как выполнено</button>
+                `;
+                ordersDiv.appendChild(div);
+              }
+            });
+          } else {
+            ordersDiv.innerText = 'Заказов нет';
+          }
+        });
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    window.markAsDone = async function(orderId) {
+      const orderRef = ref(db, 'orders/' + orderId);
+      await update(orderRef, { status: 'выполнен' });
+      alert('Заказ отмечен как выполненный');
+    }
+
+    window.logout = function() {
+      signOut(auth).then(() => {
+        window.location.href = 'login.html';
+      });
+    }
+  </script>
 </body>
 </html>
