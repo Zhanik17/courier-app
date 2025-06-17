@@ -2,27 +2,53 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Карта: Где курьер?</title>
+  <title>Карта курьера</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
   <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-    }
     #map {
-      height: 100vh;
-      width: 100vw;
+      height: 90vh;
+      width: 100%;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h2 {
+      margin: 10px;
+    }
+
+    .logout-btn {
+      margin: 10px;
+      padding: 10px 20px;
+      background: #ff6961;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background: #ff4c4c;
     }
   </style>
 </head>
 <body>
+  <h2>Карта курьера</h2>
+  <button class="logout-btn" id="logout">Выйти</button>
   <div id="map"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
@@ -35,29 +61,60 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getDatabase(app);
 
-    const map = L.map('map').setView([51.1694, 71.4491], 13);
-
-    // ✅ Надёжный источник тайлов (OpenStreetMap CDN)
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
+    const map = L.map("map").setView([51.1694, 71.4491], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap",
     }).addTo(map);
 
-    const marker = L.marker([51.1694, 71.4491]).addTo(map)
-      .bindPopup("Курьер здесь")
-      .openPopup();
+    const marker = L.marker([51.1694, 71.4491]).addTo(map).bindPopup("Вы здесь");
 
-    const courierRef = ref(db, 'courier/location');
+    // Проверка авторизации
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
 
-    onValue(courierRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.lat && data.lng) {
-        marker.setLatLng([data.lat, data.lng]);
-        map.setView([data.lat, data.lng]);
+        function updateLocation(position) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          marker.setLatLng([lat, lng]);
+          map.setView([lat, lng], 15);
+
+          // Отправка в базу данных
+          set(ref(db, "couriers/" + uid + "/location"), {
+            lat,
+            lng,
+            timestamp: Date.now()
+          });
+        }
+
+        function errorHandler(error) {
+          alert("Ошибка получения геопозиции: " + error.message);
+        }
+
+        if (navigator.geolocation) {
+          navigator.geolocation.watchPosition(updateLocation, errorHandler, {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
+          });
+        } else {
+          alert("Геолокация не поддерживается этим браузером.");
+        }
+
+        // Выход
+        document.getElementById("logout").addEventListener("click", () => {
+          signOut(auth).then(() => {
+            window.location.href = "login.html";
+          });
+        });
+      } else {
+        window.location.href = "login.html";
       }
     });
   </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
