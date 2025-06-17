@@ -1,91 +1,105 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Вход для курьера</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Вход курьера</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f1f1f1;
+      background: linear-gradient(135deg, #fdfbfb, #ebedee);
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
+      margin: 0;
     }
+
     form {
       background: white;
-      padding: 20px;
+      padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
       display: flex;
       flex-direction: column;
       gap: 10px;
       width: 300px;
     }
+
+    h2 {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
     input {
       padding: 10px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 1px solid #ccc;
     }
+
     button {
-      background-color: #4caf50;
-      color: white;
       padding: 10px;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
       font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
     }
+
     button:hover {
       background-color: #45a049;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-<form id="login-form">
-  <h2>Вход курьера</h2>
-  <input type="email" id="email" placeholder="Email" required />
-  <input type="password" id="password" placeholder="Пароль" required />
-  <button type="submit">Войти</button>
-</form>
+  <form id="login-form">
+    <h2>Вход курьера</h2>
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Пароль" required />
+    <button type="submit">Войти</button>
+    <div class="error" id="error-message"></div>
+  </form>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
-    authDomain: "courierapp-99ddb.firebaseapp.com",
-    projectId: "courierapp-99ddb",
-    storageBucket: "courierapp-99ddb.appspot.com",
-    messagingSenderId: "474302757465",
-    appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
-    measurementId: "G-X58GS7WDHG"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
+      authDomain: "courierapp-99ddb.firebaseapp.com",
+      projectId: "courierapp-99ddb",
+      storageBucket: "courierapp-99ddb.appspot.com",
+      messagingSenderId: "474302757465",
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-  document.getElementById("login-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const form = document.getElementById('login-form');
+    const errorMessage = document.getElementById('error-message');
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Вход выполнен");
-      window.location.href = "courier.html";
-    } catch (error) {
-      alert("Ошибка входа: " + error.message);
-    }
-  });
-</script>
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Успешный вход — редирект на карту
+        window.location.href = "map.html";
+      } catch (error) {
+        errorMessage.textContent = "Ошибка входа: " + error.message;
+      }
+    });
+  </script>
 
 </body>
 </html>
-
-        
-
