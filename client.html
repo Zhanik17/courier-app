@@ -2,29 +2,63 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Оформить заказ</title>
+  <title>Оформление заказа</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
   <h2>Оформить заказ</h2>
   <form id="orderForm">
-    <input type="text" id="name" placeholder="Имя клиента" required /><br />
-    <input type="text" id="item" placeholder="Что доставить?" required /><br />
-    <input type="text" id="from" placeholder="Откуда?" required /><br />
-    <input type="text" id="to" placeholder="Куда?" required /><br />
-    <input type="time" id="time" required /><br />
-    <select id="serviceType">
-      <option value="courier">Курьер</option>
-      <option value="taxi">Такси</option>
-      <option value="child">Детская доставка</option>
-    </select><br /><br />
+    <label>Ваше имя:
+      <input type="text" id="name" required />
+    </label>
+    <label>Откуда забрать:
+      <input type="text" id="from" required />
+    </label>
+    <label>Куда доставить:
+      <input type="text" id="to" required />
+    </label>
+    <label>Что доставить:
+      <textarea id="item" required></textarea>
+    </label>
+    <label>Время доставки:
+      <input type="time" id="time" required />
+    </label>
+    <label>Тип услуги:
+      <select id="service">
+        <option value="доставка">Доставка</option>
+        <option value="такси">Такси</option>
+        <option value="дети">Дети</option>
+      </select>
+    </label>
     <button type="submit">Отправить заказ</button>
   </form>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
@@ -32,4 +66,32 @@
       projectId: "courierapp-99ddb",
       storageBucket: "courierapp-99ddb.appspot.com",
       messagingSenderId: "474302757465",
-      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48"
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
+      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const form = document.getElementById("orderForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const order = {
+        name: document.getElementById("name").value,
+        from: document.getElementById("from").value,
+        to: document.getElementById("to").value,
+        item: document.getElementById("item").value,
+        time: document.getElementById("time").value,
+        service: document.getElementById("service").value,
+        status: "в процессе",
+        createdAt: new Date().toISOString()
+      };
+
+      await push(ref(db, "orders"), order);
+      alert("Заказ отправлен!");
+      form.reset();
+    });
+  </script>
+</body>
+</html>
