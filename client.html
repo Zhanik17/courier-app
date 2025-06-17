@@ -2,18 +2,29 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Где курьер?</title>
+  <title>Оформить заказ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>#map { height: 90vh; width: 100%; }</style>
 </head>
 <body>
-  <h2>Карта курьера</h2>
-  <div id="map"></div>
+  <h2>Оформить заказ</h2>
+  <form id="orderForm">
+    <input type="text" id="name" placeholder="Имя клиента" required /><br />
+    <input type="text" id="item" placeholder="Что доставить?" required /><br />
+    <input type="text" id="from" placeholder="Откуда?" required /><br />
+    <input type="text" id="to" placeholder="Куда?" required /><br />
+    <input type="time" id="time" required /><br />
+    <select id="serviceType">
+      <option value="courier">Курьер</option>
+      <option value="taxi">Такси</option>
+      <option value="child">Детская доставка</option>
+    </select><br /><br />
+    <button type="submit">Отправить заказ</button>
+  </form>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC2le-5_lHwyqzujn3WsRsDZrBf-Rab-5c",
@@ -21,31 +32,4 @@
       projectId: "courierapp-99ddb",
       storageBucket: "courierapp-99ddb.appspot.com",
       messagingSenderId: "474302757465",
-      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48",
-      databaseURL: "https://courierapp-99ddb-default-rtdb.firebaseio.com"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const map = L.map('map').setView([51.1694, 71.4491], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    const marker = L.marker([0, 0]).addTo(map).bindPopup("Курьер");
-
-    const courierUid = "UID_КУРЬЕРА"; // сюда вставь UID реального пользователя
-
-    onValue(ref(db, 'couriers/' + courierUid + '/location'), (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const { lat, lng } = data;
-        marker.setLatLng([lat, lng]);
-        map.setView([lat, lng], 15);
-      }
-    });
-  </script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-</body>
-</html>
+      appId: "1:474302757465:web:26c43df7fe8f8c122a0f48"
