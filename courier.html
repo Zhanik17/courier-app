@@ -1,38 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <title>Личный кабинет курьера</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    h2 { margin-top: 40px; }
-    .order { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-    .completed { background: #f0f0f0; color: gray; }
-    button { margin-top: 10px; }
+    body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+    h2 { color: #333; }
+    .order { background: #fff; padding: 10px 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .completed { background: #e0ffe0; }
+    button { margin-top: 8px; padding: 6px 12px; border: none; background-color: #28a745; color: white; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #218838; }
+    hr { border: none; border-top: 1px solid #ccc; margin: 20px 0; }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h1>Личный кабинет курьера</h1>
+  <h2>👋 Здравствуйте, курьер!</h2>
+  <h3>🚚 Текущие заказы:</h3>
+  <div id="current-orders"></div>
 
-  <h2>📦 Текущие заказы</h2>
-  <div id="inProgressOrders"></div>
+  <hr>
 
-  <h2>✅ Выполненные заказы</h2>
-  <div id="completedOrders"></div>
+  <h3>✅ Выполненные заказы:</h3>
+  <div id="completed-orders"></div>
 
   <script>
-    // 🔐 Firebase конфиг — уже вставлен!
+    // 👉 Firebase-конфиг твоего проекта:
     const firebaseConfig = {
-      apiKey: "AIzaSyD1kE5rIkwelYqGLOhN7g1n7WL5J03gyqI",
-      authDomain: "courier-app17.firebaseapp.com",
-      databaseURL: "https://courier-app17-default-rtdb.firebaseio.com",
-      projectId: "courier-app17",
-      storageBucket: "courier-app17.appspot.com",
-      messagingSenderId: "535358089364",
-      appId: "1:535358089364:web:f8b3d3d4a9a24ebf34e2f3"
+      apiKey: "AIzaSyD2fGiGUlv-D2_W04WRrxAFe34rNzB1FVU",
+      authDomain: "courier-app-bcf64.firebaseapp.com",
+      databaseURL: "https://courier-app-bcf64-default-rtdb.firebaseio.com",
+      projectId: "courier-app-bcf64",
+      storageBucket: "courier-app-bcf64.appspot.com",
+      messagingSenderId: "328029865365",
+      appId: "1:328029865365:web:8c9cd999a9b49d7cfb2d21"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -42,51 +45,42 @@
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = 'login.html';
-      } else {
-        const uid = user.uid;
-        const ordersRef = db.ref("orders");
+        return;
+      }
 
-        ordersRef.on("value", snapshot => {
-          const orders = snapshot.val();
-          const inProgressDiv = document.getElementById("inProgressOrders");
-          const completedDiv = document.getElementById("completedOrders");
+      const uid = user.uid;
+      db.ref('orders').on('value', snapshot => {
+        const orders = snapshot.val() || {};
+        const currentOrders = document.getElementById('current-orders');
+        const completedOrders = document.getElementById('completed-orders');
+        currentOrders.innerHTML = '';
+        completedOrders.innerHTML = '';
 
-          inProgressDiv.innerHTML = "";
-          completedDiv.innerHTML = "";
+        Object.entries(orders).forEach(([id, order]) => {
+          if (order.courierId === uid) {
+            const div = document.createElement('div');
+            div.className = 'order' + (order.status === 'completed' ? ' completed' : '');
+            div.innerHTML = `
+              <p><strong>Имя клиента:</strong> ${order.name}</p>
+              <p><strong>Откуда:</strong> ${order.from}</p>
+              <p><strong>Куда:</strong> ${order.to}</p>
+              <p><strong>Что доставить:</strong> ${order.what}</p>
+            `;
 
-          for (let id in orders) {
-            const order = orders[id];
-            if (order.courierId === uid) {
-              const div = document.createElement("div");
-              div.className = "order";
-              if (order.status === "completed") {
-                div.classList.add("completed");
-              }
-
-              div.innerHTML = `
-                <p><strong>Клиент:</strong> ${order.name}</p>
-                <p><strong>Откуда:</strong> ${order.from}</p>
-                <p><strong>Куда:</strong> ${order.to}</p>
-                <p><strong>Что доставить:</strong> ${order.what}</p>
-              `;
-
-              if (order.status === "in-progress") {
-                const btn = document.createElement("button");
-                btn.textContent = "✅ Выполнено";
-                btn.onclick = () => {
-                  db.ref("orders/" + id).update({
-                    status: "completed"
-                  });
-                };
-                div.appendChild(btn);
-                inProgressDiv.appendChild(div);
-              } else {
-                completedDiv.appendChild(div);
-              }
+            if (order.status === 'in-progress') {
+              const btn = document.createElement('button');
+              btn.textContent = 'Выполнено';
+              btn.onclick = () => {
+                db.ref('orders/' + id).update({ status: 'completed' });
+              };
+              div.appendChild(btn);
+              currentOrders.appendChild(div);
+            } else {
+              completedOrders.appendChild(div);
             }
           }
         });
-      }
+      });
     });
   </script>
 </body>
